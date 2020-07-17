@@ -7,5 +7,7 @@
 			"path": "../SimpleSDMLayers.jl"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"julia.useRevise": true
+	}
 }
