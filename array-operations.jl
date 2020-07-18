@@ -44,3 +44,10 @@ coordsnotnothing = map(x -> findall(!isnothing, x.grid), [minifloat, miniint, mi
 uniquenot = unique(coordsnotnothing)
 @time reduce(intersect, uniquenot)
 @time intersect(uniquenot...)
+
+# Math operations
+temperature + precipitation
+temperature - precipitation
+temperature * precipitation
+temperature + precipitation
+reduce(+, wc_vars)
