@@ -26,7 +26,9 @@ df = CSV.read("data/test-data.csv")
 latitude = :latitude
 longitude = :longitude
 temperature = worldclim(1)
+wc_vars = worldclim(1:19)
 layer = temperature
+layers = wc_vars
 
 # Getindex
 temperature[df]
@@ -55,3 +57,7 @@ temperature_clip = clip(temperature, df)
 temperature_clip.grid
 # using Plots
 # plot(temperature_clip)
+
+# DataFrame
+@time DataFrame(temperature)
+@time DataFrame(layers)
