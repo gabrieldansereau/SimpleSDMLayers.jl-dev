@@ -1,6 +1,5 @@
 import Pkg;
 Pkg.activate(".")
-using Revise
 using SimpleSDMLayers
 using DataFrames
 using CSV
@@ -24,3 +23,15 @@ CSV.write("data/test-data.csv", newdf)
 
 ## Test
 df = CSV.read("data/test-data.csv")
+latitude = :latitude
+longitude = :longitude
+temperature = worldclim(1)
+layer = temperature
+
+# Getindex
+temperature[df]
+
+# Setindex
+tmp = copy(convert(SimpleSDMResponse, temperature))
+tmp[df]
+tmp[df] = Float32.(collect(1:nrow(df))) # let's put it aside for now
