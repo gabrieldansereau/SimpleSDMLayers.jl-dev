@@ -61,3 +61,9 @@ temperature_clip.grid
 # DataFrame
 @time DataFrame(temperature)
 @time DataFrame(layers)
+
+# SimpleSDMResponse
+layerdf = DataFrame(temperature)
+@time SimpleSDMResponse(layerdf, :values, layer)
+minidf = DataFrame(latitude = [1.0, 0.0], longitude = [1.0, 0.0], values = [42, 3])
+@time SimpleSDMResponse(minidf, :values, layer)
