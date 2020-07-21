@@ -3,6 +3,7 @@ Pkg.activate(".")
 using SimpleSDMLayers
 using DataFrames
 using CSV
+using Plots
 
 ## Prepare test data
 #=
@@ -22,13 +23,15 @@ CSV.write("data/test-data.csv", newdf)
 =#
 
 ## Test
-df = CSV.read("data/test-data.csv")
+testdf = CSV.read("data/test-data.csv")
 latitude = :latitude
 longitude = :longitude
 temperature = worldclim(1)
 wc_vars = worldclim(1:19)
 layer = temperature
 layers = wc_vars
+col = :values
+ty = :SimpleSDMResponse
 
 # Getindex
 temperature[df]
@@ -62,8 +65,13 @@ temperature_clip.grid
 @time DataFrame(temperature)
 @time DataFrame(layers)
 
-# SimpleSDMResponse
-layerdf = DataFrame(temperature)
-@time SimpleSDMResponse(layerdf, :values, layer)
+# SimpleSDMResponse/Predictor
+df = DataFrame(temperature)
+@time SimpleSDMResponse(df, :values, layer)
+@time SimpleSDMPredictor(df, :values, layer)
 minidf = DataFrame(latitude = [1.0, 0.0], longitude = [1.0, 0.0], values = [42, 3])
 @time SimpleSDMResponse(minidf, :values, layer)
+mediumdf = df[rand(1:nrow(df), 10_000), :]
+@time SimpleSDMResponse(mediumdf, :values, layer)
+valuesdf = filter(x -> !isnothing(x.values), df)
+@time tmp = SimpleSDMResponse(valuesdf, :values, layer)
