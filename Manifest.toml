@@ -101,6 +101,12 @@ version = "0.4.2"
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
+[[GBIF]]
+deps = ["Dates", "HTTP", "JSON", "Requires"]
+git-tree-sha1 = "072e6f986ee8eb131c4125ed1689e0356d6bbfab"
+uuid = "ee291a33-5a6c-5552-a3c8-0f29a1181037"
+version = "0.3.2"
+
 [[GDAL]]
 deps = ["CEnum", "GDAL_jll", "MozillaCACerts_jll", "PROJ_jll"]
 git-tree-sha1 = "14dcb10bf90a1c912a24417c2aa55a69bcd93e49"
@@ -351,9 +357,9 @@ uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
 [[SimpleSDMLayers]]
 deps = ["ArchGDAL", "HTTP", "RecipesBase", "Requires", "Statistics", "ZipFile"]
-git-tree-sha1 = "474819ce50d89e8bab7eb66790b49ebfb0b5ff0f"
+path = "/home/gdansereau/github/SimpleSDMLayers.jl"
 uuid = "2c645270-77db-11e9-22c3-0f302a89c64c"
-version = "0.4.3"
+version = "0.4.5"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
