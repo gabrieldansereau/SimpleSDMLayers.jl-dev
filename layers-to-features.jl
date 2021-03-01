@@ -100,6 +100,7 @@ longitudes(layer), latitudes(layer), lg
 # Sliding window
 buffered = slidingwindow(presabs, maximum, 50.0)
 plot(buffered)
+
 ## Test new replace/replace!
 
 presabs
@@ -141,3 +142,43 @@ mask(temperature_clip, kf_df2, Float32; latitude = :lat, longitude = :lon) # sho
 
 mask(temperature_clip, kf_df, Bool) # should still work
 mask(temperature_clip, kf_df, Float32) # should still work
+
+# Allocations
+
+kf_df
+kf_df2 = copy(kf_df)
+
+kf_df2.key[1] = 1
+kf_df2
+kf_df2[!, :key] .= 1
+kf_df2
+kf_df
+
+kf_df2 = copy(kf_df)
+tmp = mask(temperature_clip, kf_df2, Float32)
+tmp.grid
+isequal(kf_df, kf_df2)
+
+lat = kf_df[1, :latitude]
+lon = kf_df[1, :longitude]
+temperature_clip[lon, lat]
+
+tmp = SimpleSDMResponse(kf_df, :key, temperature_clip)
+tmp.grid
+
+tempdf = DataFrame(temperature_clip)
+templayer = SimpleSDMPredictor(tempdf, :values, temperature_clip)
+
+isequal(templayer, temperature_clip)
+isequal(templayer.grid, temperature_clip.grid)
+
+df = tempdf
+lats = df[!, latitude]
+lons = df[!, longitude]
+uniquelats = unique(lats)
+uniquelons = unique(lons)
+grid = Array{Any}(nothing, size(layer))
+lats_idx = [SimpleSDMLayers._match_latitude(layer, lat) for lat in lats]
+lons_idx = [SimpleSDMLayers._match_longitude(layer, lon) for lon in lons]
+DataFrame(lats = lats_idx, lons = lons_idx)
+unique(DataFrame, [:lats, :lons])
