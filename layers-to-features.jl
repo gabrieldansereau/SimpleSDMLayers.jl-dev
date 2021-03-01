@@ -182,3 +182,67 @@ lats_idx = [SimpleSDMLayers._match_latitude(layer, lat) for lat in lats]
 lons_idx = [SimpleSDMLayers._match_longitude(layer, lon) for lon in lons]
 DataFrame(lats = lats_idx, lons = lons_idx)
 unique(DataFrame, [:lats, :lons])
+
+## Filter unique sites
+tempdf = DataFrame(temperature_clip)
+filter!(x -> !isnothing(x.values), tempdf)
+
+# Benchmarks
+smallmultidf = vcat(copy(kf_df), copy(kf_df))
+
+mediummultidf = vcat(copy(kf_df), copy(kf_df), copy(kf_df), copy(kf_df),
+                     copy(kf_df), copy(kf_df), copy(kf_df), copy(kf_df))
+
+midmediummultidf = vcat(copy(mediummultidf), copy(mediummultidf), copy(mediummultidf),
+                        copy(mediummultidf), copy(mediummultidf), copy(mediummultidf))
+
+bigmultidf = vcat(copy(tempdf), copy(tempdf))
+
+hugemultidf = vcat(copy(bigmultidf), copy(bigmultidf), copy(bigmultidf), copy(bigmultidf), 
+                   copy(bigmultidf), copy(bigmultidf), copy(bigmultidf), copy(bigmultidf))
+
+# 400 obs (2 x 200)
+@time mask(temperature_clip, smallmultidf, Bool) # without unique filtering
+# 0.029148 seconds (35.14 k allocations: 5.966 MiB)
+# 0.008258 seconds (22.03 k allocations: 5.249 MiB)
+@time mask(temperature_clip, smallmultidf, Bool) # with unique filtering
+# 0.120525 seconds (75.84 k allocations: 6.536 MiB)
+# 0.003245 seconds (12.56 k allocations: 3.843 MiB)
+
+# 1600 obs (8 x 200)
+@time mask(temperature_clip, mediummultidf, Bool) # without unique filtering
+# 0.038381 seconds (101.17 k allocations: 14.591 MiB)
+# 0.030026 seconds (88.04 k allocations: 13.873 MiB, 49.52% gc time)
+@time mask(temperature_clip, mediummultidf, Bool) # with unique filtering
+# 0.112739 seconds (79.48 k allocations: 6.614 MiB)
+# 0.003388 seconds (16.16 k allocations: 3.921 MiB)
+
+# 10 000 obs
+@time mask(temperature_clip, midmediummultidf, Bool) # with unique filtering
+# 0.118171 seconds (541.20 k allocations: 72.088 MiB, 12.66% gc time)
+# 0.092093 seconds (528.03 k allocations: 71.368 MiB, 15.12% gc time)
+@time mask(temperature_clip, midmediummultidf, Bool) # with unique filtering
+# 0.126579 seconds (103.51 k allocations: 7.160 MiB)
+# 0.004906 seconds (40.16 k allocations: 4.466 MiB)
+
+# 100 000 obs
+@time mask(temperature_clip, bigmultidf, Bool)
+# 0.928445 seconds (7.37 M allocations: 993.580 MiB, 11.33% gc time)
+# 0.914822 seconds (7.37 M allocations: 993.580 MiB, 12.57% gc time)
+@time mask(temperature_clip, bigmultidf, Bool)
+# 0.591735 seconds (3.75 M allocations: 505.812 MiB, 9.40% gc time)
+# 0.488477 seconds (3.69 M allocations: 503.119 MiB, 10.87% gc time)
+
+# 1 000 000 obs
+@time mask(temperature_clip, hugemultidf, Bool)
+# 7.427266 seconds (58.99 M allocations: 7.747 GiB, 11.92% gc time)
+# 6.763797 seconds (58.98 M allocations: 7.746 GiB, 10.16% gc time)
+@time mask(temperature_clip, hugemultidf, Bool)
+# 0.610696 seconds (3.75 M allocations: 528.286 MiB, 9.03% gc time)
+# 0.464374 seconds (3.69 M allocations: 525.593 MiB, 8.72% gc time)
+
+# Make sure result is the same
+res1 = mask(temperature_clip, smallmultidf, Bool)
+res2 = mask(temperature_clip, smallmultidf, Bool)
+isequal(res1, res2) # nope, but whatever
+isequal(res1.grid, res2.grid) # yup, that's what's important
