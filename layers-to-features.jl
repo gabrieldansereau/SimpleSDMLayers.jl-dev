@@ -5,6 +5,7 @@ using Revise
 using SimpleSDMLayers
 using Plots
 using GBIF
+using DataFrames
 
 # Get world temperature data
 temperature = worldclim(1)
@@ -99,3 +100,44 @@ longitudes(layer), latitudes(layer), lg
 # Sliding window
 buffered = slidingwindow(presabs, maximum, 50.0)
 plot(buffered)
+## Test new replace/replace!
+
+presabs
+presabs.grid
+
+tmp = copy(presabs)
+replace!(tmp, 0 => nothing)
+tmp.grid
+tmp.grid |> unique
+plot(convert(Float64, tmp), c = :viridis)
+
+## Test DataFrames mask
+
+kf_df = DataFrame(kf_occurrences)
+select!(kf_df, [:key, :latitude, :longitude])
+
+# Basic mask
+
+layer = similar(temperature_clip, Bool)
+layer = similar(temperature_clip, Float32)
+
+presabs = mask(temperature_clip, kf_df, Bool)
+abund   = mask(temperature_clip, kf_df, Float32)
+
+plot(convert(Float32, presabs), c = :viridis)
+plot(abund, c = :viridis)
+
+# Latitude/longitude colnames
+
+latitude = :latitude 
+longitude = :longitude
+
+kf_df2 = rename(kf_df, :longitude => :lon, :latitude => :lat)
+mask(temperature_clip, kf_df2, Bool) # should fail
+mask(temperature_clip, kf_df2, Float32) # should fail
+
+mask(temperature_clip, kf_df2, Bool; latitude = :lat, longitude = :lon) # should work
+mask(temperature_clip, kf_df2, Float32; latitude = :lat, longitude = :lon) # should work
+
+mask(temperature_clip, kf_df, Bool) # should still work
+mask(temperature_clip, kf_df, Float32) # should still work
