@@ -38,3 +38,16 @@ gt[1] + gt[2]*ArchGDAL.width(d)
 
 nlat = (-50.0 - -145.0)/0.1666666666666666574
 nlon = (75.0 - 20.0)/0.1666666666666666574
+
+test2 = geotiff(SimpleSDMPredictor, "../../rasters/wc1_cropped.tif")
+geotiff("test2.tif", test2)
+geotiff(SimpleSDMPredictor, "test2.tif")
+
+# No data value attempt
+d = ArchGDAL.read("../../rasters/wc1_cropped.tif")
+d1 = ArchGDAL.getband(d, 1)
+d1_nodata = ArchGDAL.getnodatavalue(d1)
+geotiff("test2.tif", test2; nodata=Float32(-3.4e+38))
+geotiff("test2.tif", test2; nodata=Float32(d1_nodata))
+geotiff(SimpleSDMPredictor, "test2.tif")
+rm("test2.tif")
