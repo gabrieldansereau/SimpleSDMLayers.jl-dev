@@ -49,10 +49,10 @@ _match_longitude(layer, isnothing(right) ? layer.right : right) # ok
 _match_longitude(layer, isnothing(left) ? layer.left : left) # should be 211
 lon = left
 last(findmin(abs.(lon .- longitudes(layer))))
-lon .- longitudes(layer)
-abs.(lon .- longitudes(layer))
-findmin(abs.(lon .- longitudes(layer)))
-last(findmin(abs.(lon .- longitudes(layer))))
+@time lon .- longitudes(layer)
+@time abs.(lon .- longitudes(layer))
+@time findmin(abs.(lon .- longitudes(layer)))
+@time last(findmin(abs.(lon .- longitudes(layer))))
 
 isapprox(abs.(lon .- longitudes(layer))[[210, 211]]...)
 findall(x -> x ≈ stride(layer,1), abs.(lon .- longitudes(layer)))
@@ -60,10 +60,54 @@ findall(x -> x ≈ stride(layer,1), abs.(lon .- longitudes(layer)))
 @time filter(x -> lon-stride(layer,1) <= x <= lon+stride(layer, 1), longitudes(layer))
 i1, i2 = findall(x -> lon-stride(layer,1) <= x <= lon+stride(layer, 1), longitudes(layer))
 (lon .- longitudes(layer))[[i1, i2]] .|> abs
+isapprox.(stride(layer,1), abs.((lon .- longitudes(layer))[[i1, i2]]))
 
+@time any(x -> isapprox(x, left), longitudes(layer) .- stride(layer,1))
 findall(x -> isapprox(x, left), longitudes(layer) .- stride(layer,1))
+findall(x -> isapprox(x, left), longitudes(layer) .+ stride(layer,1))
 findall(x -> isapprox(x, left+0.001), longitudes(layer) .- stride(layer,1))
 findall(x -> isapprox(x, right), longitudes(layer) .- stride(layer,1))
+
+findall(x -> isapprox(x, bottom), latitudes(layer) .- stride(layer,1))
+findall(x -> isapprox(x, top), latitudes(layer) .+ stride(layer,1))
+
+
+@time LinRange(layer.bottom+stride(layer, 2), layer.top-stride(layer, 2), size(layer,1))
+@time range(layer.bottom+stride(layer, 2), layer.top-stride(layer, 2), length=size(layer,1))
+
+# As previously
+@time _match_longitude(layer, isnothing(left) ? layer.left : left) # 25 alloc
+# with return l
+@time _match_longitude(layer, isnothing(left) ? layer.left : left) # 25 alloc
+# with if else
+@time _match_longitude(layer, isnothing(left) ? layer.left : left) # 25 alloc
+@time _match_longitude(layer, isnothing(left) ? layer.left : left; side=:none) # 25 alloc
+@time _match_longitude(layer, isnothing(left) ? layer.left : left; side=:left) # 25 alloc
+@time _match_longitude(layer, isnothing(left) ? layer.left : left; side=:youppi) # 25 alloc
+# with any statement
+ldiff = abs.(lon .- longitudes(layer))
+@time any(x -> isapprox(x, stride(layer,1)), ldiff)
+@time findlast(x -> isapprox(x, stride(layer,1)), ldiff)
+@time _match_longitude(layer, isnothing(left) ? layer.left : left) # 26 alloc
+@time _match_longitude(layer, isnothing(left) ? layer.left : left; side=:none) # 26 alloc
+@time _match_longitude(layer, isnothing(left) ? layer.left : left; side=:left) # 15.15k alloc
+@time _match_longitude(layer, isnothing(right) ? layer.right : right; side=:right) # 10.95k alloc
+@time _match_longitude(layer, isnothing(left+0.001) ? layer.left : left+0.001; side=:left) # 15.15k alloc
+@time _match_longitude(layer, isnothing(left-0.001) ? layer.left : left-0.001) # 28 alloc
+@time _match_longitude(layer, layer.right) # 28 alloc
+@time _match_longitude(layer, layer.right; side=:right) # 28 alloc
+@time _match_longitude(layer, layer.right; side=:left) # 28 alloc
+# Test full fix
+_match_longitude(layer, isnothing(right) ? layer.right : right; side=:right)
+_match_longitude(layer, isnothing(left) ? layer.left : left; side=:left)
+_match_latitude(layer, isnothing(top) ? layer.top : top; side=:top)
+_match_latitude(layer, isnothing(bottom) ? layer.bottom : bottom; side=:bottom)
+@time layer[coords] # 0.002510 seconds (47.69 k allocations: 1.676 MiB) (now)
+@time layer[coords] # 0.001570 seconds (222 allocations: 981.422 KiB) (before)
+
+ref
+isequal(layer[coords].grid, ref.grid) # true!
+isequal(layer[coords], ref) # false, as bounding coordinates are not exactly the same
 
 tmp = collect(range(layer.left+stride(layer, 1), layer.right-stride(layer, 1), length=size(layer,2)))
 145.0 in tmp .+ stride(layer,1)
