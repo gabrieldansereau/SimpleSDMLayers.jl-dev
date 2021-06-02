@@ -524,3 +524,19 @@ l1 = SimpleSDMPredictor(WorldClim, BioClim, 1)
 length(l1)
 geotiff(tempname(), l1)
 length(l1)
+
+## Step 6: Contiguous hcat/vcat
+using Test
+
+# Base layer
+l1 = SimpleSDMPredictor(WorldClim, BioClim, 1; left=0.0, right=10.0, bottom=0.0, top=10.0)
+# Non contiguous layers
+l2 = SimpleSDMPredictor(WorldClim, BioClim, 1; left=0.0, right=10.0, bottom=20.0, top=30.0)
+l3 = SimpleSDMPredictor(WorldClim, BioClim, 1; left=20.0, right=30.0, bottom=0.0, top=10.0)
+
+vcat(l2, l1)
+hcat(l1, l3)
+
+l4 = SimpleSDMPredictor(WorldClim, BioClim, 1; left=0.0, right=10.0, bottom=10.0, top=20.0)
+vcat(l4, l1)
+vcat(l1, l4)
