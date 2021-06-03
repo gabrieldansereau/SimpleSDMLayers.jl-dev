@@ -212,7 +212,7 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 deps = ["ArchGDAL", "Downloads", "RecipesBase", "Requires", "Statistics", "ZipFile"]
 path = "/home/gdansereau/github/SimpleSDMLayers.jl"
 uuid = "2c645270-77db-11e9-22c3-0f302a89c64c"
-version = "0.6.0"
+version = "0.7.0"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
