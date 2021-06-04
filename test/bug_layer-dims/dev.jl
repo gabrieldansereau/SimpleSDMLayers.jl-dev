@@ -1,3 +1,4 @@
+using Revise: basedir
 cd(@__DIR__); import Pkg; Pkg.activate(".")
 coords = (left = -145.0, right = -50.0, bottom = 20.0, top = 75.0)
 Pkg.develop(path="$(homedir())/github/SimpleSDMLayers.jl")
@@ -624,3 +625,56 @@ eltype(df1.values)
 
 layers = [layer, layer]
 layers = [temperature_clip, temperature_clip]
+
+## Step 9 : Minor improvements ####
+
+## 1. geotiff(file; coords)
+file = "assets/wc2.1_10m_bio_1.tif"
+methods(geotiff)
+geotiff(SimpleSDMPredictor, file, 1; coords...)
+
+geotiff(SimpleSDMPredictor, file, 1, coords)
+geotiff(SimpleSDMPredictor, file, 1, coords)
+# Whatever, too many methods to define and too hard to maintain
+
+## 2. ==
+l1, l2 = SimpleSDMPredictor(WorldClim, BioClim, 1:2)
+l3 = copy(l1)
+l4 = similar(l1)
+replace!(l4, nothing => NaN)
+l5 = SimpleSDMPredictor(replace(l1.grid, nothing => missing), l1)
+
+@test l1 == l1
+@test l1 === l1
+@test l2 != l1
+@test l3 == l1
+@which l3 !== l1
+
+@test l4 != l1
+@test l4 != l4
+@test !isequal(l4, l1)
+@test isequal(l4, l4)
+
+@test ismissing(l5 == l1)
+@test ismissing(l5 == l5)
+@test !isequal(l5, l1)
+@test isequal(l5, l5)
+
+# basepath = expanduser("~/julia/julia-1.6.1/share/julia/base/")
+# @which isequal(l3, l1) # Base.operators.jl:123
+# run(`code $(basepath)/operators.jl`)
+# @which l3 == l1 # Base.Base.jl:87
+# run(`code $(basepath)/Base.jl`)
+# @which isequal(l3.grid, l1.grid) # Base.abstractarray.jl:1962
+# @which l3.grid == l1.grid # Base.abstractarray.jl:1991
+# run(`code $(basepath)/abstractarray.jl`)
+
+# 3. replace!
+l1 = SimpleSDMPredictor(WorldClim, BioClim, 1)
+l2 = convert(SimpleSDMResponse, l2)
+@which replace!(l1, nothing => NaN)
+l1 isa SimpleSDMPredictor
+l2 isa SimpleSDMPredictor
+replace!(l1, nothing => NaN)
+replace!(l2, nothing => NaN)
+l2.grid
